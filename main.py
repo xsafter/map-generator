@@ -1,6 +1,6 @@
-import sys
 import random
 from collections import deque
+
 from PIL import Image
 
 
