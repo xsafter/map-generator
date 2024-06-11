@@ -82,25 +82,6 @@ def flood_find_empty(grid, tries, goal):
                             unvisited.append([current[0] + k, current[1] + l_])
         percentage = open_count * 100 / (len(grid) * len(grid[0]))
 
-    exit_side = random.randint(1, 4)
-    match exit_side:
-        case 1:  # left
-            starting_coords = [0, random.randint(10, len(grid)-20)]
-            for y in range(starting_coords[1], starting_coords[1]+10):
-                grid[starting_coords[0]][y] = 0
-        case 2:  # right
-            starting_coords = [len(grid[0]), random.randint(10, len(grid)-20)]
-            for y in range(starting_coords[1], starting_coords[1]+10):
-                grid[starting_coords[0]][y] = 0
-        case 3:  # top
-            starting_coords = [random.randint(10, len(grid[0])-20), 0]
-            for x in range(starting_coords[0], starting_coords[0]+10):
-                grid[x][starting_coords[1]] = 0
-        case 4:  # bottom
-            starting_coords = [random.randint(10, len(grid[0])-20), len(grid)]
-            for x in range(starting_coords[0], starting_coords[0] + 10):
-                grid[x][starting_coords[1]] = 0
-
     return new_grid, percentage
 
 
@@ -119,29 +100,47 @@ def generate(*, width: int, height: int, iterations: int, uuid: str):
 
     grid, percentage = flood_find_empty(grid, flood_tries, goal_percentage)
     exit_side = random.randint(1, 4)
+    player_coords = [0, 0]
+
+    def check_for_player_stuck(coords: list) -> bool:
+        values = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                values.append(grid[coords[0]+i][coords[1]+j] == 0)
+        return False not in values
+
     match exit_side:
-        case 1:  # left
+        case 1:  # left, right
             starting_coords = [0, random.randint(10, len(grid) - 30)]
             for i in range(3):
                 for y in range(starting_coords[1], starting_coords[1] + 20):
                     grid[starting_coords[0] + i][y] = 2
-        case 2:  # right
+            while not check_for_player_stuck(player_coords):
+                player_coords = [random.randint(len(grid[0]) // 2, len(grid[0]) - 1), random.randint(0, len(grid) - 1)]
+        case 2:  # right, left
             starting_coords = [len(grid[0]) - 1, random.randint(10, len(grid) - 30)]
             for i in range(3):
                 for y in range(starting_coords[1], starting_coords[1] + 20):
                     grid[starting_coords[0] - i][y] = 2
-        case 3:  # top
+            while not check_for_player_stuck(player_coords):
+                player_coords = [random.randint(0, len(grid[0]) // 2), random.randint(0, len(grid) - 1)]
+        case 3:  # top, bottom
             starting_coords = [random.randint(10, len(grid[0]) - 30), 0]
             for i in range(3):
                 for x in range(starting_coords[0], starting_coords[0] + 20):
                     grid[x][starting_coords[1] + i] = 2
-        case 4:  # bottom
+            while not check_for_player_stuck(player_coords):
+                player_coords = [random.randint(0, len(grid[0]) - 1), random.randint(len(grid) // 2, len(grid) - 1)]
+        case 4:  # bottom, top
             starting_coords = [random.randint(10, len(grid[0]) - 30), len(grid) - 1]
             for i in range(3):
                 for x in range(starting_coords[0], starting_coords[0] + 20):
                     grid[x][starting_coords[1] - i] = 2
+            while not check_for_player_stuck(player_coords):
+                player_coords = [random.randint(0, len(grid[0]) - 1), random.randint(0, len(grid) // 2)]
+
+    grid[player_coords[0]][player_coords[1]] = 3
 
     print_grid(grid, width, height, uuid)
 
-    player_coords = []  # TODO generate player at random coords far from exit
     return player_coords
